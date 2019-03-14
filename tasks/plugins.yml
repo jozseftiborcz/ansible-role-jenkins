@@ -13,6 +13,22 @@
     jenkins_admin_password: "{{ adminpasswordfile['stdout'] | default(jenkins_admin_password) }}"
   no_log: true
 
+- name: Get Jenkins alt admin password from file.
+  slurp:
+    src: "{{ jenkins_alt_admin_password_file }}"
+  register: alt_adminpasswordfile
+  no_log: true
+  when: jenkins_alt_admin_password_file != ""
+  tags: ['skip_ansible_lint']
+
+- name: Set Jenkins alt admin password fact.
+  set_fact:
+    jenkins_alt_admin_password: "{{ alt_adminpasswordfile['stdout'] | default(jenkins_alt_admin_password) }}"
+  no_log: true
+
+- name: decide which admin user to use
+  include_tasks: select-admin.yml 
+
 # Update Jenkins so that plugin updates don't fail.
 - name: Create Jenkins updates directory.
   file:
@@ -39,6 +55,14 @@
     path: "{{ jenkins_home }}/updates/default.json"
     regexp: "1d;$d"
 
+- name: Add configuration-as-code plugin
+  set_fact:
+    jenkins_plugins: 
+      - configuration-as-code
+      - configuration-as-code-support
+      - "{{ jenkins_plugins }}"
+  when: casc_file is defined
+
 - name: Install Jenkins plugins using password.
   jenkins_plugin:
     name: "{{ item }}"
@@ -57,5 +81,5 @@
   tags: ['skip_ansible_lint']
   register: plugin_result
   until: plugin_result is success
-  retries: 3
+  retries: 6
   delay: 2

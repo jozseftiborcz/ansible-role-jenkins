@@ -1,0 +1,24 @@
+---
+- name: checking authentication with {{ jenkins_admin_username }}
+  uri:
+    url: "http://{{ jenkins_hostname }}:{{ jenkins_http_port }}{{ jenkins_url_prefix }}"
+    user: "{{ jenkins_admin_username }}"
+    password: "{{ jenkins_admin_password }}"
+    force_basic_auth: true
+  ignore_errors: true
+  register:
+    admin1_login
+- name: checking authentication with {{ jenkins_alt_admin_username }}
+  uri:
+    url: "http://{{ jenkins_hostname }}:{{ jenkins_http_port }}{{ jenkins_url_prefix }}"
+    user: "{{ jenkins_alt_admin_username }}"
+    password: "{{ jenkins_alt_admin_password }}"
+    force_basic_auth: true
+  register:
+    admin2_login
+  when: admin1_login.failed
+- set_fact:
+    jenkins_admin_username: "{{ jenkins_alt_admin_username }}"
+    jenkins_admin_password: "{{ jenkins_alt_admin_password }}"
+  no_log: true
+  when: admin2_login is defined

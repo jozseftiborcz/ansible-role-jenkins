@@ -27,6 +27,12 @@ jenkins_admin_username: admin
 jenkins_admin_password: admin
 jenkins_admin_password_file: ""
 
+# alternate admin user (can be used after ldap/AD integration is turned on)
+# role tries to use the one that is working...
+jenkins_alt_admin_username: admin
+jenkins_alt_admin_password: admin
+jenkins_alt_admin_password_file: ""
+
 jenkins_process_user: jenkins
 jenkins_process_group: "{{ jenkins_process_user }}"
 
